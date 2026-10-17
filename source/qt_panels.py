@@ -20,6 +20,27 @@ MONO_FONT = QFont("Consolas", 9)
 ROW_HEIGHT = 24
 
 
+class CellTable(QTableWidget):
+    """行内单元格控件垂直居中的表格。
+
+    默认顶对齐时首行输入框的上边框紧贴表头下缘，在高 DPI 缩放下
+    与表头并线糊在一起，看起来像缺了上边框。
+    """
+
+    def updateGeometries(self):
+        super().updateGeometries()
+        for r in range(self.rowCount()):
+            top = self.rowViewportPosition(r)
+            for c in range(self.columnCount()):
+                w = self.cellWidget(r, c)
+                if w is None:
+                    continue
+                g = w.geometry()
+                y = top + max(0, (self.rowHeight(r) - g.height()) // 2)
+                if g.y() != y:
+                    w.setGeometry(g.x(), y, g.width(), g.height())
+
+
 class SendCell(QPushButton):
     """SSCOM 风格的注释发送格：显示注释，单击发送该行，双击编辑注释。
 
@@ -297,12 +318,10 @@ class MultiSendPanel(QGroupBox):
         self.sel_all.setChecked(False)
         self.sel_all.stateChanged.connect(self.toggle_select_all)
         top.addWidget(self.sel_all)
-        self.hint_label = QLabel()
-        self.hint_label.setStyleSheet("color: #555;")
-        top.addWidget(self.hint_label, 1)
+        top.addStretch(1)
         layout.addLayout(top)
 
-        self.table = QTableWidget(0, 6)
+        self.table = CellTable(0, 6)
         self.table.setHorizontalHeaderLabels(["循环", "HEX", "", "", "", ""])
         header = self.table.horizontalHeader()
         # 仿 SSCOM 列布局：复选框窄、发送内容占主宽（等宽字体），
@@ -328,7 +347,6 @@ class MultiSendPanel(QGroupBox):
         self.btn_del.setText(lg.get("del_selected", "删除选中"))
         self.btn_cycle.setText(lg.get("stop_cycle", "停止循环") if self.cycle_running else lg.get("cycle_send", "循环发送"))
         self.sel_all.setText("全选")
-        self.hint_label.setText(lg.get("multi_send_hint", "勾选的条目会按延时顺序循环发送；单击“发送”可立即发送该行。"))
         self.table.setHorizontalHeaderLabels(
             ["循环", "HEX", lg.get("col_content", "发送内容"), lg.get("col_send_comment", "点击发送（双击编辑注释）"),
              lg.get("col_delay", "延时(ms)"), ""])
@@ -553,9 +571,10 @@ class AutoAnswerPanel(QGroupBox):
 
         self.hint_label = QLabel()
         self.hint_label.setStyleSheet("color: #555;")
+        self.hint_label.setWordWrap(True)
         layout.addWidget(self.hint_label)
 
-        self.table = QTableWidget(0, 5)
+        self.table = CellTable(0, 5)
         header = self.table.horizontalHeader()
         header.setSectionResizeMode(self.COL_SEL, QHeaderView.ResizeMode.Fixed)
         header.setSectionResizeMode(self.COL_RECV, QHeaderView.ResizeMode.Stretch)

@@ -272,6 +272,10 @@ class MainWindow(QMainWindow):
         self.right_container.hide()
         self.splitter.setStretchFactor(0, 3)
         self.splitter.setStretchFactor(1, 1)
+        # 初始按 日志:功能面板 ≈ 56:44 分栏，窗口拉宽时日志优先（stretch 3:1）；
+        # 否则右侧面板的 sizeHint 会抢占大部分宽度，日志框被挤得很小
+        self.splitter.setSizes([560, 440])
+        self.splitter.setCollapsible(0, False)
         root.addWidget(self.splitter, 1)
 
         # 中部：串口配置 + 发送设置
@@ -1037,7 +1041,8 @@ class MainWindow(QMainWindow):
                 self.restoreGeometry(base64.b64decode(geometry))
             except Exception:
                 pass
-        state = cfg.get("qt_state")
+        # layout_version 门控：旧版保存的分栏宽度不继承，按新默认比例重建
+        state = cfg.get("qt_state") if cfg.get("layout_version") == 2 else None
         if state:
             try:
                 import base64
@@ -1061,6 +1066,7 @@ class MainWindow(QMainWindow):
             "buffer_limit": self.buffer_limit,
             "qt_geometry": base64.b64encode(self.saveGeometry()).decode("ascii"),
             "qt_state": base64.b64encode(self.splitter.saveState()).decode("ascii"),
+            "layout_version": 2,
         }
         save_json(DISPLAY_CONFIG_FILE, cfg)
 
@@ -1088,6 +1094,14 @@ class MainWindow(QMainWindow):
 
 
 def main():
+    if sys.platform == "win32":
+        try:
+            # Per-Monitor V2 DPI 感知：打包 exe 未内嵌 dpiAware 清单时，
+            # 否则 125%/150% 缩放下窗口被系统位图拉伸，细边框会糊掉
+            import ctypes
+            ctypes.windll.user32.SetProcessDpiAwarenessContext(ctypes.c_void_p(-4))
+        except Exception:
+            pass
     app = QApplication(sys.argv)
     app.setApplicationName("坤坤串口助手")
     win = MainWindow()
