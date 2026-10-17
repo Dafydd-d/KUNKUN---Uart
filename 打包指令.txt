@@ -1,0 +1,28 @@
+# 坤坤串口助手（Qt 版）打包说明
+# 依赖：MSYS2 UCRT64 Python 3.14 + pacman 包 mingw-w64-ucrt-x86_64-python-pyqt6 + pip 包 PyInstaller
+# 入口：source\qt_app.py   产物：onedir（exe + _internal），直接覆盖程序根目录同名文件即可
+
+$src = "$PSScriptRoot\source"
+New-Item -ItemType Directory -Force "$PSScriptRoot\_pkg_work" | Out-Null
+
+& python -m PyInstaller --noconfirm --clean --onedir --windowed `
+  --name "坤坤串口助手" `
+  --icon "$src\app.ico" `
+  --distpath "$PSScriptRoot\_pkg_work\dist" `
+  --workpath "$PSScriptRoot\_pkg_work\build" `
+  --specpath "$PSScriptRoot\_pkg_work" `
+  --paths $src `
+  --add-data "$src\_lib;_lib" `
+  --add-data "$src\app_rounded.png;." `
+  "$src\qt_app.py"
+
+if ($LASTEXITCODE -ne 0) { throw '打包失败，请查看上方错误信息。' }
+
+Get-Process -Name '坤坤串口助手' -ErrorAction SilentlyContinue | Stop-Process -Force
+Remove-Item -LiteralPath "$PSScriptRoot\_internal" -Recurse -Force -ErrorAction SilentlyContinue
+Remove-Item -LiteralPath "$PSScriptRoot\坤坤串口助手.exe" -Force -ErrorAction SilentlyContinue
+Copy-Item -LiteralPath "$PSScriptRoot\_pkg_work\dist\坤坤串口助手\_internal" -Destination $PSScriptRoot -Recurse -Force
+Copy-Item -LiteralPath "$PSScriptRoot\_pkg_work\dist\坤坤串口助手\坤坤串口助手.exe" -Destination $PSScriptRoot -Force
+Remove-Item -Recurse -Force "$PSScriptRoot\_pkg_work"
+
+Start-Process -FilePath "$PSScriptRoot\坤坤串口助手.exe"

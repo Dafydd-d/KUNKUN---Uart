@@ -1,0 +1,30 @@
+# Python 缓存
+__pycache__/
+*.py[cod]
+*.egg-info/
+
+# 虚拟环境
+.venv/
+venv/
+
+# 运行时生成的用户数据（串口设置、窗口布局、缓存、日志）
+config/
+logs/
+
+# PyInstaller 打包产物（见 打包指令.txt）
+_internal/
+_pkg_work/
+build/
+dist/
+*.spec
+*.exe
+
+# 本地工具 / 编辑器
+.claude/
+.vscode/
+.idea/
+
+# 系统文件
+Thumbs.db
+Desktop.ini
+.DS_Store
