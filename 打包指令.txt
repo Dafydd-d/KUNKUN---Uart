@@ -26,3 +26,21 @@ Copy-Item -LiteralPath "$PSScriptRoot\_pkg_work\dist\坤坤串口助手\坤坤�
 Remove-Item -Recurse -Force "$PSScriptRoot\_pkg_work"
 
 Start-Process -FilePath "$PSScriptRoot\坤坤串口助手.exe"
+
+# ===== 单文件版（可选，便于分发） =====
+# 产物为独立 exe（约 40MB，依赖压缩在内），双击即用，无需 _internal/。
+# 代价：每次启动需解压到临时目录，比目录版慢几秒；杀软误报概率略高。
+# 与目录版并存，文件名区分，不会互相覆盖。
+
+# & python -m PyInstaller --noconfirm --clean --onefile --windowed `
+#   --name "坤坤串口助手-单文件版" `
+#   --icon "$src\app.ico" `
+#   --distpath "$PSScriptRoot\_pkg_onefile\dist" `
+#   --workpath "$PSScriptRoot\_pkg_onefile\build" `
+#   --specpath "$PSScriptRoot\_pkg_onefile" `
+#   --paths $src `
+#   --add-data "$src\_lib;_lib" `
+#   --add-data "$src\app_rounded.png;." `
+#   "$src\qt_app.py"
+# Copy-Item -LiteralPath "$PSScriptRoot\_pkg_onefile\dist\坤坤串口助手-单文件版.exe" -Destination $PSScriptRoot -Force
+# Remove-Item -Recurse -Force "$PSScriptRoot\_pkg_onefile"
