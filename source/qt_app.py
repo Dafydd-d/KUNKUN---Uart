@@ -457,8 +457,6 @@ class MainWindow(QMainWindow):
 
         m_help = mb.addMenu(lg.get("help", "帮助"))
         m_help.addAction(lg.get("update_history", "更新历史"), self.show_update_history)
-        m_help.addAction(lg.get("version_archive", "历史版本"),
-                         lambda: QDesktopServices.openUrl(QUrl("https://dafydd-d.github.io/kunkun-serial-assistant/")))
         m_help.addAction(lg.get("about", "关于"), self.show_about)
 
     def switch_lang(self, lang_key):
@@ -943,8 +941,16 @@ class MainWindow(QMainWindow):
                                 self.lang.get("display_help_info", "支持自定义字体、背景色、缓冲区大小。"))
 
     def show_about(self):
-        QMessageBox.information(self, self.lang.get("about", "关于"),
-                                self.lang.get("about_content", "坤坤串口助手 V1.5"))
+        repo_url = "https://github.com/Dafydd-d/KUNKUN---Uart"
+        content = self.lang.get("about_content", "坤坤串口助手 V1.5").replace("\n", "<br>")
+        box = QMessageBox(QMessageBox.Icon.Information, self.lang.get("about", "关于"),
+                          f'{content}<br><br><a href="{repo_url}">{repo_url}</a>',
+                          QMessageBox.StandardButton.Ok, self)
+        box.setTextFormat(Qt.TextFormat.RichText)
+        label = box.findChild(QLabel, "qt_msgbox_label")
+        if label is not None:
+            label.linkActivated.connect(lambda u: QDesktopServices.openUrl(QUrl(u)))
+        box.exec()
 
     def show_update_history(self):
         from qt_dialogs import UpdateHistoryDialog
